@@ -15,7 +15,14 @@ void SDFileServer::setup() { this->base_->add_handler(this); }
 
 void SDFileServer::dump_config() {
   ESP_LOGCONFIG(TAG, "SD File Server:");
-  ESP_LOGCONFIG(TAG, "  Address: %s:%u", network::get_use_address_to(), this->base_->get_port());
+  
+  // Create a character array of size 70 (or use network::USE_ADDRESS_BUFFER_SIZE)
+  char address_buffer[70];
+  // Pass the array into the function so it has a place to write the address
+  const char *addr = network::get_use_address_to(address_buffer);
+
+  // Now pass the resulting 'addr' variable into the logger
+  ESP_LOGCONFIG(TAG, "  Address: %s:%u", addr, this->base_->get_port());
   ESP_LOGCONFIG(TAG, "  Url Prefix: %s", this->url_prefix_.c_str());
   ESP_LOGCONFIG(TAG, "  Root Path: %s", this->root_path_.c_str());
   ESP_LOGCONFIG(TAG, "  Deletation Enabled: %s", TRUEFALSE(this->deletion_enabled_));
