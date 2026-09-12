@@ -100,9 +100,9 @@ void SDFileServer::set_download_enabled(bool allow) { this->download_enabled_ = 
 
 void SDFileServer::set_upload_enabled(bool allow) { this->upload_enabled_ = allow; }
 
-void SDFileServer::handle_get(AsyncWebServerRequest *request) const {
+void SDFileServer::handle_get(web_server_idf::AsyncWebServerRequest *request) const {
   char url_buffer[web_server_idf::AsyncWebServerRequest::URL_BUF_SIZE];
-  std::string extracted = this->extract_path_from_url (std::string(request->url_to().c_str()));
+  std::string extracted = this->extract_path_from_url (request->url_to(url_buffer).c_str());
   std::string path = this->build_absolute_path(extracted);
 
   if (!this->sd_mmc_card_->is_directory(path)) {
@@ -350,13 +350,13 @@ void SDFileServer::handle_download(AsyncWebServerRequest *request, std::string c
   request->send(response);
 }
 
-void SDFileServer::handle_delete(AsyncWebServerRequest *request) {
+void SDFileServer::handle_delete(web_server_idf::AsyncWebServerRequest *request) {
   if (!this->deletion_enabled_) {
     request->send(401, "application/json", "{ \"error\": \"file deletion is disabled\" }");
     return;
   }
   char url_buffer[web_server_idf::AsyncWebServerRequest::URL_BUF_SIZE];
-  std::string extracted = this->extract_path_from_url(std::string(request->url_to().c_str()));
+  std::string extracted = this->extract_path_from_url(request->url_to(url_buffer).c_str());
   std::string path = this->build_absolute_path(extracted);
   if (this->sd_mmc_card_->is_directory(path)) {
     request->send(401, "application/json", "{ \"error\": \"cannot delete a directory\" }");
