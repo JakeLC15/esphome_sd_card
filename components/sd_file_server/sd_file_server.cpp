@@ -31,16 +31,18 @@ void SDFileServer::dump_config() {
 }
 
 bool SDFileServer::canHandle(AsyncWebServerRequest *request) const {
-  char url_buffer[web_server_idf::URL_BUF_SIZE];
+  char url_buffer[web_server_idf::AsyncWebServerRequest::URL_BUF_SIZE];
   const char *url_str = request->url_to(url_buffer).c_str();
+  
   ESP_LOGD(TAG, "can handle %s %u", request->url_to().c_str(),
            str_startswith(std::string(request->url_to().c_str()), this->build_prefix()));
   return str_startswith(std::string(request->url_to().c_str()), this->build_prefix());
 }
 
 void SDFileServer::handleRequest(AsyncWebServerRequest *request) {
-  char url_buffer[web_server_idf::URL_BUF_SIZE];
+  char url_buffer[web_server_idf::AsyncWebServerRequest::URL_BUF_SIZE];
   const char *url_str = request->url_to(url_buffer).c_str();
+  
   ESP_LOGD(TAG, "%s", request->url_to().c_str());
   if (str_startswith(std::string(request->url_to().c_str()), this->build_prefix())) {
     if (request->method() == HTTP_GET) {
