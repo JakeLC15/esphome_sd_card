@@ -31,14 +31,14 @@ void SDFileServer::dump_config() {
 }
 
 bool SDFileServer::canHandle(AsyncWebServerRequest *request) const {
-  ESP_LOGD(TAG, "can handle %s %u", request->url().c_str(),
-           str_startswith(std::string(request->url().c_str()), this->build_prefix()));
-  return str_startswith(std::string(request->url().c_str()), this->build_prefix());
+  ESP_LOGD(TAG, "can handle %s %u", request->url_to().c_str(),
+           str_startswith(std::string(request->url_to().c_str()), this->build_prefix()));
+  return str_startswith(std::string(request->url_to().c_str()), this->build_prefix());
 }
 
 void SDFileServer::handleRequest(AsyncWebServerRequest *request) {
-  ESP_LOGD(TAG, "%s", request->url().c_str());
-  if (str_startswith(std::string(request->url().c_str()), this->build_prefix())) {
+  ESP_LOGD(TAG, "%s", request->url_to().c_str());
+  if (str_startswith(std::string(request->url_to().c_str()), this->build_prefix())) {
     if (request->method() == HTTP_GET) {
       this->handle_get(request);
       return;
@@ -56,7 +56,7 @@ void SDFileServer::handleUpload(AsyncWebServerRequest *request, const std::strin
     request->send(401, "application/json", "{ \"error\": \"file upload is disabled\" }");
     return;
   }
-  std::string extracted = this->extract_path_from_url(std::string(request->url().c_str()));
+  std::string extracted = this->extract_path_from_url_to!(std::string(request->url().c_str()));
   std::string path = this->build_absolute_path(extracted);
 
   if (index == 0 && !this->sd_mmc_card_->is_directory(path)) {
@@ -93,7 +93,7 @@ void SDFileServer::set_download_enabled(bool allow) { this->download_enabled_ = 
 void SDFileServer::set_upload_enabled(bool allow) { this->upload_enabled_ = allow; }
 
 void SDFileServer::handle_get(AsyncWebServerRequest *request) const {
-  std::string extracted = this->extract_path_from_url(std::string(request->url().c_str()));
+  std::string extracted = this->extract_path_from_url_to (std::string(request->url().c_str()));
   std::string path = this->build_absolute_path(extracted);
 
   if (!this->sd_mmc_card_->is_directory(path)) {
