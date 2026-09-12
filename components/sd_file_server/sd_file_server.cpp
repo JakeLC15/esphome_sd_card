@@ -30,21 +30,24 @@ void SDFileServer::dump_config() {
   ESP_LOGCONFIG(TAG, "  Upload Enabled : %s", TRUEFALSE(this->upload_enabled_));
 }
 
-bool SDFileServer::canHandle(AsyncWebServerRequest *request) const {
+bool SDFileServer::canHandle(web_server_idf::AsyncWebServerRequest *request) const {
   char url_buffer[web_server_idf::AsyncWebServerRequest::URL_BUF_SIZE];
   const char *url_str = request->url_to(url_buffer).c_str();
-  
-  ESP_LOGD(TAG, "can handle %s %u", request->url_to().c_str(),
-           str_startswith(std::string(request->url_to().c_str()), this->build_prefix()));
-  return str_startswith(std::string(request->url_to().c_str()), this->build_prefix());
+
+  ESP_LOGD(TAG, "can handle %s %u", url_str,
+           str_startswith(std::string(url_str), this->build_prefix()));
+           
+  return str_startswith(std::string(url_str), this->build_prefix());
 }
 
-void SDFileServer::handleRequest(AsyncWebServerRequest *request) {
+void SDFileServer::handleRequest(web_server_idf::AsyncWebServerRequest *request) {
+  // Allocate the 513-byte buffer array
   char url_buffer[web_server_idf::AsyncWebServerRequest::URL_BUF_SIZE];
+  // Pass the buffer array into the function
   const char *url_str = request->url_to(url_buffer).c_str();
-  
-  ESP_LOGD(TAG, "%s", request->url_to().c_str());
-  if (str_startswith(std::string(request->url_to().c_str()), this->build_prefix())) {
+
+  ESP_LOGD(TAG, "%s", url_str);
+  if (str_startswith(std::string(url_str), this->build_prefix())) {
     if (request->method() == HTTP_GET) {
       this->handle_get(request);
       return;
@@ -55,15 +58,13 @@ void SDFileServer::handleRequest(AsyncWebServerRequest *request) {
     }
   }
 }
-
-void SDFileServer::handleUpload(AsyncWebServerRequest *request, const std::string &filename, size_t index, uint8_t *data,
-                                size_t len, bool final) {
+void SDFileServer::handleUpload(web_server_idf::AsyncWebServerRequest *request, const std::string &filename, size_t index, uint8_t *data, size_t len, bool final) {
   if (!this->upload_enabled_) {
     request->send(401, "application/json", "{ \"error\": \"file upload is disabled\" }");
     return;
   }
   char url_buffer[web_server_idf::AsyncWebServerRequest::URL_BUF_SIZE];
-  std::string extracted = this->extract_path_from_url(std::string(request->url_to().c_str()));
+  std::string extracted = this->extract_path_from_url(request->url_to(url_buffer).c_str());
   std::string path = this->build_absolute_path(extracted);
 
   if (index == 0 && !this->sd_mmc_card_->is_directory(path)) {
